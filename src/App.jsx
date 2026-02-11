@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import './App.css'
+import './App.css?inline'
 import { generateSummary, generateQuiz, generateFlashcards } from './services/gemini'
 
 function App() {
