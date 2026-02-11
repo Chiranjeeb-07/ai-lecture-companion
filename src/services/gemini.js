@@ -1,12 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Replace with your API key
-const API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
+// Get API key from environment variable
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 export const generateSummary = async (notes) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `Please summarize the following lecture notes in a clear, structured format:
     
@@ -25,23 +25,23 @@ export const generateSummary = async (notes) => {
     return response.text();
   } catch (error) {
     console.error('Error generating summary:', error);
-    return "Sorry, I couldn't generate the summary. Please try again.";
+    return "⚠️ Error: Could not generate summary. Please check your API key and try again.";
   }
 };
 
 export const generateQuiz = async (notes) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `Based on these lecture notes, create 3 multiple choice questions with 4 options each:
     
     ${notes}
     
-    Format as JSON:
+    IMPORTANT: Return ONLY valid JSON, no other text. Format:
     [
       {
         "question": "question text",
-        "options": ["A", "B", "C", "D"],
+        "options": ["A. option1", "B. option2", "C. option3", "D. option4"],
         "correct": 0,
         "explanation": "why this answer is correct"
       }
@@ -49,7 +49,14 @@ export const generateQuiz = async (notes) => {
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return JSON.parse(response.text());
+    const text = response.text();
+    
+    // Extract JSON from the response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return null;
   } catch (error) {
     console.error('Error generating quiz:', error);
     return null;
@@ -58,13 +65,13 @@ export const generateQuiz = async (notes) => {
 
 export const generateFlashcards = async (notes) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `Based on these lecture notes, create 5 flashcards with term and definition:
     
     ${notes}
     
-    Format as JSON:
+    IMPORTANT: Return ONLY valid JSON, no other text. Format:
     [
       {
         "term": "key concept",
@@ -74,7 +81,14 @@ export const generateFlashcards = async (notes) => {
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return JSON.parse(response.text());
+    const text = response.text();
+    
+    // Extract JSON from the response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return null;
   } catch (error) {
     console.error('Error generating flashcards:', error);
     return null;
